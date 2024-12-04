@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/leboh2210/cafe-assignment/static/css/main.d8d67f2f.css",
+    "main.js": "/leboh2210/cafe-assignment/static/js/main.c54d3891.js",
+    "static/js/453.a0345f9e.chunk.js": "/leboh2210/cafe-assignment/static/js/453.a0345f9e.chunk.js",
+    "static/media/img.jpg": "/leboh2210/cafe-assignment/static/media/img.23947a29509153795648.jpg",
+    "index.html": "/leboh2210/cafe-assignment/index.html",
+    "main.d8d67f2f.css.map": "/leboh2210/cafe-assignment/static/css/main.d8d67f2f.css.map",
+    "main.c54d3891.js.map": "/leboh2210/cafe-assignment/static/js/main.c54d3891.js.map",
+    "453.a0345f9e.chunk.js.map": "/leboh2210/cafe-assignment/static/js/453.a0345f9e.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d8d67f2f.css",
+    "static/js/main.c54d3891.js"
+  ]
+}
