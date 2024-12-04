@@ -1,23 +1,41 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from "react";
 import './App.css';
+import InventoryApp from './Components/InventoryApp/InventoryApp';  
+import { database } from './firebaseConfig';  
+
+import { ref, onValue } from "firebase/database";  
 
 function App() {
+  const [data, setData] = useState([]); 
+
+  useEffect(() => {
+    
+    const collectionRef = ref(database, "your_collection");
+
+    const fetchData = () => {
+      onValue(collectionRef, (snapshot) => {
+        const dataItem = snapshot.val();
+        
+        if (dataItem) {
+          const displayItem = Object.values(dataItem);  
+          setData(displayItem); 
+        }
+      });
+    };
+
+    fetchData();
+  }, []); 
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <h1>Data from Firebase Database:</h1>
+      <ul>
+        {data.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+      
+      <InventoryApp />  
     </div>
   );
 }
