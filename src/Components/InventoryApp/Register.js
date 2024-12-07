@@ -10,7 +10,6 @@ const Register = ({ setIsRegistering, setLoggedIn }) => {
   const [username, setUsername] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -21,7 +20,6 @@ const Register = ({ setIsRegistering, setLoggedIn }) => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Store username and email in the Realtime Database under the user's UID
       await set(ref(database, 'users/' + user.uid), {
         username,
         email,
@@ -30,9 +28,7 @@ const Register = ({ setIsRegistering, setLoggedIn }) => {
       setSuccessMessage('Registration successful! Please log in.');
       setIsRegistered(true);
     } catch (error) {
-      if (error.code === 'auth/email-already-in-use') {
-        setErrorMessage('This email is already registered. Please use a different one.');
-      } else if (error.code === 'auth/weak-password') {
+      if (error.code === 'auth/weak-password') {
         setErrorMessage('The password is too weak. It must be at least 6 characters long.');
       } else if (error.code === 'auth/invalid-email') {
         setErrorMessage('The email address is not valid. Please check your email.');
@@ -46,21 +42,34 @@ const Register = ({ setIsRegistering, setLoggedIn }) => {
     e.preventDefault();
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Fetch the user's username from the database after successful login
-      const userRef = ref(database, 'users/' + user.uid);
+      const userRef = ref(database, 'users');
       const snapshot = await get(userRef);
-      if (snapshot.exists()) {
-        setUser(snapshot.val().username); // Set the username from the database
-      }
+      let foundUser = null;
 
-      setLoggedIn(true);
-      setIsRegistering(false);
-      setSuccessMessage('Login successful!');
+      snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val();
+        if (data.username === username) {
+          foundUser = { ...data, uid: childSnapshot.key };
+        }
+      });
+
+      if (foundUser) {
+        await signInWithEmailAndPassword(auth, foundUser.email, password);
+        setUser(foundUser.username);
+        setLoggedIn(true);
+        setIsRegistering(false);
+        setSuccessMessage('Login successful!');
+      } else {
+        setErrorMessage('User not found. Please check your username or register first.');
+      }
     } catch (error) {
-      setErrorMessage('Login failed. Please check your email and password.');
+      if (error.code === 'auth/wrong-password') {
+        setErrorMessage('Incorrect password. Please try again.');
+      } else if (error.code === 'auth/user-not-found') {
+        setErrorMessage('No user found with this username. Please register.');
+      } else {
+        setErrorMessage('Login failed. Please check your username and password.');
+      }
     }
   };
 
@@ -112,10 +121,10 @@ const Register = ({ setIsRegistering, setLoggedIn }) => {
       ) : (
         <form onSubmit={handleLogin}>
           <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
           <input

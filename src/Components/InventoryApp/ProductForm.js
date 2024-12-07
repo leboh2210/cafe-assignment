@@ -33,22 +33,19 @@ const ProductForm = ({ setProducts }) => {
 
     const productRef = ref(database, 'products/');
 
-    // Check if the product already exists (based on name or any unique field)
-    const snapshot = await get(productRef);
-    const data = snapshot.val();
-
-    // Checking if a product with the same name already exists
-    const existingProduct = data && Object.values(data).find((product) => product.name === name);
-
-    if (existingProduct) {
-      setError('Product with this name already exists.');
-      return; // Prevent adding the duplicate product
-    }
-
-    const productId = Date.now().toString();
-    const newProductRef = ref(database, 'products/' + productId);
-
     try {
+      const snapshot = await get(productRef);
+      const data = snapshot.val();
+      const existingProduct = data && Object.values(data).find((product) => product.name === name);
+
+      if (existingProduct) {
+        setError('Product with this name already exists.');
+        return;
+      }
+
+      const productId = Date.now().toString();
+      const newProductRef = ref(database, 'products/' + productId);
+
       await set(newProductRef, {
         id: productId,
         name,
@@ -63,11 +60,13 @@ const ProductForm = ({ setProducts }) => {
       setQuantity('');
       setError('');
 
-      // Update the UI with the newly added product
-      setProducts((prevProducts) => [
-        ...prevProducts,
-        { id: productId, name, description, price: parsedPrice, quantity: parsedQuantity },
-      ]);
+      // Fetch the updated products after adding the new one to Firebase
+      const updatedSnapshot = await get(productRef);
+      const updatedData = updatedSnapshot.val();
+      
+      // Update the UI state with the newly fetched products
+      const productsList = updatedData ? Object.values(updatedData) : [];
+      setProducts(productsList);
 
       alert('Product added successfully!');
     } catch (err) {

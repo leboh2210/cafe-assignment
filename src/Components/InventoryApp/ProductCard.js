@@ -23,7 +23,7 @@ const ProductCard = ({ product, onSellProduct }) => {
 
   const handleSaveEdit = async () => {
     try {
-      const productRef = ref(database, `products/${product.id}`);
+      const productRef = ref(database, `products/M{product.id}`);
       await update(productRef, editedProduct);
       alert('Product updated successfully!');
       setIsEditing(false);
@@ -86,7 +86,7 @@ const ProductCard = ({ product, onSellProduct }) => {
         <>
           <td>{product.name}</td>
           <td>{product.description}</td>
-          <td>${product.price}</td>
+          <td>M {product.price}</td>
           <td>{product.quantity}</td>
           <td>
             <button onClick={handleEditToggle}>Edit</button>

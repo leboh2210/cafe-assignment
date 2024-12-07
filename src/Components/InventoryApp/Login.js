@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './Login.css';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, database } from '../../firebaseConfig'; 
-import { ref, get } from 'firebase/database'; 
+import { auth, database } from '../../firebaseConfig';
+import { ref, get } from 'firebase/database';
 
 const Login = ({ setLoggedIn, setIsRegistering, setActiveTab }) => {
   const [username, setUsername] = useState('');
@@ -13,41 +13,41 @@ const Login = ({ setLoggedIn, setIsRegistering, setActiveTab }) => {
     e.preventDefault();
 
     try {
-      // Query the 'users' node in the Realtime Database to find the user by username
       const userRef = ref(database, 'users/');
       const snapshot = await get(userRef);
 
       if (snapshot.exists()) {
-        // Retrieve all users and find the user by username
         const users = snapshot.val();
-        const user = Object.values(users).find((user) => user.username === username);
+        const user = Object.values(users).find((user) => user.username.trim().toLowerCase() === username.trim().toLowerCase());
 
         if (user) {
-          // Sign in the user using the email and password from the database
-          await signInWithEmailAndPassword(auth, user.email, password);
-          
-          // Set logged-in state to true
-          setLoggedIn(true);
-          
-          // Redirect to 'add-products' tab after login
-          setActiveTab('add-products');
-          
-          setErrorMessage('');  // Clear any previous error message
+          const userEmail = user.email;
+
+          try {
+            await signInWithEmailAndPassword(auth, userEmail, password);
+
+            setLoggedIn(true);
+            setActiveTab('add-products');
+            setErrorMessage('');
+          } catch (authError) {
+            console.error('Authentication error:', authError);
+            if (authError.code === 'auth/wrong-password') {
+              setErrorMessage('Incorrect password. Please try again.');
+            } else if (authError.code === 'auth/user-not-found') {
+              setErrorMessage('No user found with this email. Please check your username and password.');
+            } else {
+              setErrorMessage('Error logging in. Please try again.');
+            }
+          }
         } else {
-          setErrorMessage('Username not found.');
+          setErrorMessage('Username not found. Please check your username or register.');
         }
       } else {
-        setErrorMessage('No users found.');
+        setErrorMessage('No users found in the database.');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/wrong-password') {
-        setErrorMessage('Incorrect password. Please try again.');
-      } else if (error.code === 'auth/user-not-found') {
-        setErrorMessage('User not found.');
-      } else {
-        setErrorMessage('Error logging in. Please try again.');
-      }
+      console.error('Error fetching users:', error);
+      setErrorMessage('Error fetching user data. Please try again.');
     }
   };
 
@@ -76,7 +76,7 @@ const Login = ({ setLoggedIn, setIsRegistering, setActiveTab }) => {
 
       <p>
         Don't have an account?{' '}
-        <button onClick={() => setIsRegistering(true)}>Register here</button>
+        <span onClick={() => setIsRegistering(true)} className="toggle-link">Register here</span>
       </p>
     </div>
   );
